@@ -284,6 +284,7 @@ export interface Chain {
   ticker: string;
   category: ChainCategory;
   status: ChainStatus;
+  color: string;
   chainId?: number;
   logoUrl?: string;
   description: string;
@@ -320,6 +321,7 @@ export interface EndpointHealth {
   blockHeight: number;
   syncStatus: "synced" | "syncing" | "behind";
   errorRate: number;
+  uptimePercent: number;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -524,6 +526,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
     ticker: "SOL",
     category: "solana",
     status: "active",
+    color: "#9945FF",
     description: "High-performance blockchain optimized for fast, secure, and scalable dApps.",
     blockTimeMs: 400,
     tps: 65000,
@@ -539,6 +542,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
     category: "layer1",
     status: "active",
     chainId: 1,
+    color: "#627EEA",
     description: "The world's leading programmable blockchain.",
     blockTimeMs: 12000,
     tps: 30,
@@ -554,6 +558,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
     category: "layer2",
     status: "active",
     chainId: 8453,
+    color: "#0052FF",
     description: "Secure, low-cost, builder-friendly Ethereum L2.",
     blockTimeMs: 2000,
     tps: 2000,
@@ -569,6 +574,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
     category: "evm",
     status: "active",
     chainId: 50,
+    color: "#F9A825",
     description: "Enterprise-grade, EVM-compatible blockchain for trade finance and RWA.",
     blockTimeMs: 2000,
     tps: 2000,
@@ -584,6 +590,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
     category: "layer2",
     status: "active",
     chainId: 42161,
+    color: "#28A0F0",
     description: "Leading Ethereum L2 with optimistic rollup technology.",
     blockTimeMs: 250,
     tps: 40000,
@@ -599,6 +606,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
     category: "layer1",
     status: "active",
     chainId: 43114,
+    color: "#E84142",
     description: "High-throughput, low-latency platform for custom blockchain networks.",
     blockTimeMs: 2000,
     tps: 4500,
@@ -613,6 +621,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
     ticker: "SUI",
     category: "layer1",
     status: "beta",
+    color: "#4DA2FF",
     description: "Layer 1 blockchain designed for high-speed, low-latency asset ownership.",
     blockTimeMs: 300,
     tps: 100000,
@@ -627,6 +636,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
     ticker: "BTC",
     category: "bitcoin",
     status: "active",
+    color: "#F7931A",
     description: "The original decentralized digital currency.",
     blockTimeMs: 600000,
     tps: 7,

@@ -128,6 +128,7 @@ const mockHealth: EndpointHealth[] = [
     blockHeight: 285_432_891,
     syncStatus: "synced",
     errorRate: 0.001,
+    uptimePercent: 99.99,
   },
   {
     endpointId: "ep_sol_main_2",
@@ -137,6 +138,7 @@ const mockHealth: EndpointHealth[] = [
     blockHeight: 285_432_890,
     syncStatus: "synced",
     errorRate: 0.002,
+    uptimePercent: 99.95,
   },
   {
     endpointId: "ep_eth_main_1",
@@ -146,6 +148,7 @@ const mockHealth: EndpointHealth[] = [
     blockHeight: 19_842_105,
     syncStatus: "synced",
     errorRate: 0.001,
+    uptimePercent: 99.98,
   },
   {
     endpointId: "ep_eth_main_2",
@@ -155,6 +158,7 @@ const mockHealth: EndpointHealth[] = [
     blockHeight: 19_842_105,
     syncStatus: "synced",
     errorRate: 0.003,
+    uptimePercent: 99.92,
   },
   {
     endpointId: "ep_base_main_1",
@@ -164,6 +168,7 @@ const mockHealth: EndpointHealth[] = [
     blockHeight: 15_234_567,
     syncStatus: "synced",
     errorRate: 0.001,
+    uptimePercent: 99.97,
   },
   {
     endpointId: "ep_xdc_main_1",
@@ -173,6 +178,7 @@ const mockHealth: EndpointHealth[] = [
     blockHeight: 68_234_109,
     syncStatus: "syncing",
     errorRate: 0.05,
+    uptimePercent: 97.50,
   },
   {
     endpointId: "ep_arb_main_1",
@@ -182,6 +188,7 @@ const mockHealth: EndpointHealth[] = [
     blockHeight: 198_456_789,
     syncStatus: "synced",
     errorRate: 0.001,
+    uptimePercent: 99.96,
   },
   {
     endpointId: "ep_avax_main_1",
@@ -191,6 +198,7 @@ const mockHealth: EndpointHealth[] = [
     blockHeight: 45_678_901,
     syncStatus: "synced",
     errorRate: 0.002,
+    uptimePercent: 99.94,
   },
 ];
 

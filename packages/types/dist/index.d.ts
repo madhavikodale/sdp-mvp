@@ -150,6 +150,7 @@ export interface Chain {
     ticker: string;
     category: ChainCategory;
     status: ChainStatus;
+    color: string;
     chainId?: number;
     logoUrl?: string;
     description: string;
@@ -184,6 +185,7 @@ export interface EndpointHealth {
     blockHeight: number;
     syncStatus: "synced" | "syncing" | "behind";
     errorRate: number;
+    uptimePercent: number;
 }
 export type MetricGranularity = "minute" | "hour" | "day" | "week" | "month";
 export type MetricType = "requests" | "latency" | "errors" | "bandwidth" | "cost";

@@ -18,6 +18,7 @@ import { AnimatedCounter } from "@/components/animated-counter";
 import { MiniChart } from "@/components/mini-chart";
 import { StatusPulse } from "@/components/status-pulse";
 import { GlassHeader } from "@/components/glass-header";
+import { WebSocketFeed } from "@/components/websocket-feed";
 import { getDashboardStats } from "./actions";
 
 export const metadata = {
@@ -37,7 +38,6 @@ export default async function DashboardPage() {
         <StatusPulse status="online" label="All systems operational" />
       </GlassHeader>
 
-      {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Total Requests"
@@ -72,56 +72,57 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-lg font-semibold text-white mb-4">Core Features</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <QuickActionCard
-            title="RPC Endpoints"
-            description="Manage multi-chain RPC infrastructure with failover."
-            icon={<Globe className="h-5 w-5" />}
-            href="/dashboard/rpc"
-            accent="indigo"
-          />
-          <QuickActionCard
-            title="Streams"
-            description="Real-time blockchain data via webhooks and websockets."
-            icon={<Radio className="h-5 w-5" />}
-            href="/dashboard/streams"
-            accent="violet"
-          />
-          <QuickActionCard
-            title="Analytics"
-            description="Monitor usage, latency, and costs across all chains."
-            icon={<LineChart className="h-5 w-5" />}
-            href="/dashboard/analytics"
-            accent="emerald"
-          />
-          <QuickActionCard
-            title="API Keys"
-            description="Create and manage API keys for your applications."
-            icon={<KeyRound className="h-5 w-5" />}
-            href="/dashboard/api-keys"
-            accent="amber"
-          />
-          <QuickActionCard
-            title="Wallets"
-            description="Configure custody providers and manage wallets."
-            icon={<Wallet className="h-5 w-5" />}
-            href="/dashboard/wallets"
-            accent="sky"
-          />
-          <QuickActionCard
-            title="Team"
-            description="Manage team members and workspace access."
-            icon={<Users className="h-5 w-5" />}
-            href="/dashboard/team"
-            accent="rose"
-          />
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <h2 className="text-lg font-semibold text-white mb-4">Core Features</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <QuickActionCard
+              title="RPC Endpoints"
+              description="Manage multi-chain RPC infrastructure with failover."
+              icon={<Globe className="h-5 w-5" />}
+              href="/dashboard/rpc"
+              accent="indigo"
+            />
+            <QuickActionCard
+              title="Streams"
+              description="Real-time blockchain data via webhooks and websockets."
+              icon={<Radio className="h-5 w-5" />}
+              href="/dashboard/streams"
+              accent="violet"
+            />
+            <QuickActionCard
+              title="Analytics"
+              description="Monitor usage, latency, and costs across all chains."
+              icon={<LineChart className="h-5 w-5" />}
+              href="/dashboard/analytics"
+              accent="emerald"
+            />
+            <QuickActionCard
+              title="API Keys"
+              description="Create and manage API keys for your applications."
+              icon={<KeyRound className="h-5 w-5" />}
+              href="/dashboard/api-keys"
+              accent="amber"
+            />
+            <QuickActionCard
+              title="Wallets"
+              description="Configure custody providers and manage wallets."
+              icon={<Wallet className="h-5 w-5" />}
+              href="/dashboard/wallets"
+              accent="sky"
+            />
+            <QuickActionCard
+              title="Team"
+              description="Manage team members and workspace access."
+              icon={<Users className="h-5 w-5" />}
+              href="/dashboard/team"
+              accent="rose"
+            />
+          </div>
         </div>
+        <WebSocketFeed />
       </div>
 
-      {/* Phase 2 Features */}
       <div>
         <h2 className="text-lg font-semibold text-white mb-4">Advanced Features</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -170,7 +171,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Activity */}
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm overflow-hidden">
         <div className="border-b border-white/[0.06] px-5 py-4">
           <h2 className="font-semibold text-white">Recent Activity</h2>

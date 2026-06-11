@@ -1,6 +1,8 @@
 "use client";
 
 import { PageTransition } from "@/components/page-transition";
+import { CommandPalette } from "@/components/command-palette";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useDashboardWorkspace } from "@/contexts/dashboard-workspace-context";
 import { cn } from "@/lib/utils";
 import {
@@ -241,7 +243,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       </aside>
 
       <main className="relative z-10 flex-1 overflow-auto bg-sdp-bg/50 noise-overlay">
-        <div className="mx-auto max-w-6xl p-6">
+        <div className="sticky top-0 z-40 -mx-6 flex items-center justify-end gap-3 border-b border-white/[0.06] bg-sdp-bg/80 px-6 py-3 backdrop-blur-xl">
+          <CommandPalette />
+          <ThemeToggle />
+        </div>
+        <div className="mx-auto max-w-6xl p-6 pt-4">
           <PageTransition>{children}</PageTransition>
         </div>
       </main>

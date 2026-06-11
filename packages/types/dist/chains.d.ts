@@ -12,6 +12,7 @@ export interface Chain {
     ticker: string;
     category: ChainCategory;
     status: ChainStatus;
+    color: string;
     chainId?: number;
     logoUrl?: string;
     description: string;
@@ -48,5 +49,6 @@ export interface EndpointHealth {
     blockHeight: number;
     syncStatus: "synced" | "syncing" | "behind";
     errorRate: number;
+    uptimePercent: number;
 }
 //# sourceMappingURL=chains.d.ts.map
