@@ -161,30 +161,30 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
+      <div className="ambient-bg" />
       <aside
         className={cn(
-          "flex flex-col border-r border-sdp-border bg-sdp-sidebar-bg transition-all duration-300 ease-in-out",
+          "relative flex flex-col border-r border-white/[0.06] bg-sdp-sidebar-bg/95 backdrop-blur-xl transition-all duration-300 ease-in-out noise-overlay",
           isSidebarOpen ? "w-[260px]" : "w-[64px]"
         )}
       >
         {/* Logo */}
-        <div className="flex h-14 items-center gap-3 border-b border-sdp-border px-4">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sdp-accent text-sdp-accent-text">
+        <div className="flex h-14 items-center gap-3 border-b border-white/[0.06] px-4">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sdp-accent to-violet-500 text-white shadow-lg shadow-sdp-accent/25">
             <LayoutDashboard className="h-4 w-4" />
           </div>
           {isSidebarOpen && (
-            <span className="truncate text-sm font-semibold text-sdp-text-high">SDP MVP</span>
+            <span className="truncate text-sm font-bold text-white">SDP MVP</span>
           )}
         </div>
 
         {/* Project Switcher */}
         {isSidebarOpen && (
-          <div className="border-b border-sdp-border p-3">
+          <div className="border-b border-white/[0.06] p-3">
             <select
               value={selectedProjectId || ""}
               onChange={(e) => selectProject(e.target.value || null)}
-              className="w-full rounded-lg border border-sdp-border bg-sdp-bg px-3 py-2 text-sm text-sdp-text-high"
+              className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white focus:border-sdp-accent/50 focus:outline-none focus:ring-1 focus:ring-sdp-accent/50 transition-colors"
             >
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
@@ -223,10 +223,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </nav>
 
         {/* Collapse Toggle */}
-        <div className="border-t border-sdp-border p-2">
+        <div className="border-t border-white/[0.06] p-2">
           <button
             onClick={toggleSidebar}
-            className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm text-sdp-text-low hover:bg-sdp-bg hover:text-sdp-text-medium transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm text-white/40 hover:bg-white/5 hover:text-white/60 transition-all duration-200"
           >
             {isSidebarOpen ? (
               <>
@@ -240,8 +240,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-sdp-bg relative z-10">
+      <main className="relative z-10 flex-1 overflow-auto bg-sdp-bg/50 noise-overlay">
         <div className="mx-auto max-w-6xl p-6">
           <PageTransition>{children}</PageTransition>
         </div>

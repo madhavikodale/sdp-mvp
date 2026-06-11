@@ -26,7 +26,6 @@ export default function DashboardLayout({
       initialSelectedProjectId={MOCK_PROJECTS[0]?.id ?? null}
       initialSidebarOpen={true}
     >
-      <div className="ambient-bg" />
       <DashboardShell>{children}</DashboardShell>
     </DashboardWorkspaceProvider>
   );
