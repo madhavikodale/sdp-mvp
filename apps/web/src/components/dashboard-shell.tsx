@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTransition } from "@/components/page-transition";
 import { useDashboardWorkspace } from "@/contexts/dashboard-workspace-context";
 import { cn } from "@/lib/utils";
 import {
@@ -203,15 +204,18 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 key={item.id}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 relative",
                   isActive
-                    ? "bg-sdp-bg text-sdp-text-high"
-                    : "text-sdp-text-medium hover:bg-sdp-bg hover:text-sdp-text-high",
+                    ? "bg-gradient-to-r from-sdp-accent/20 to-transparent text-white"
+                    : "text-sdp-text-medium hover:bg-white/5 hover:text-sdp-text-high",
                   !isSidebarOpen && "justify-center px-2"
                 )}
                 title={!isSidebarOpen ? item.label : undefined}
               >
-                {item.icon}
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full bg-sdp-accent shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+                )}
+                <span className={cn(isActive && "text-sdp-accent")}>{item.icon}</span>
                 {isSidebarOpen && <span className="truncate">{item.label}</span>}
               </Link>
             );
@@ -237,8 +241,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-sdp-bg">
-        <div className="mx-auto max-w-6xl p-6">{children}</div>
+      <main className="flex-1 overflow-auto bg-sdp-bg relative z-10">
+        <div className="mx-auto max-w-6xl p-6">
+          <PageTransition>{children}</PageTransition>
+        </div>
       </main>
     </div>
   );
