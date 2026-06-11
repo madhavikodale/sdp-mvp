@@ -1,0 +1,21 @@
+{
+  "name": "sdp-mvp",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Solana Developer Platform MVP - Dashboard Shell + API Keys",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
