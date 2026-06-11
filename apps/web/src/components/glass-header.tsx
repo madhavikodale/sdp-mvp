@@ -11,6 +11,7 @@ interface GlassHeaderProps {
   description?: string;
   children?: ReactNode;
   className?: string;
+  breadcrumb?: { label: string; href?: string }[];
 }
 
 export function GlassHeader({

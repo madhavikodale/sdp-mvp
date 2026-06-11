@@ -1,3 +1,5 @@
+"use client";
+
 import {
   CheckCircle2,
   Globe,
@@ -6,41 +8,60 @@ import {
   Server,
   Zap,
 } from "lucide-react";
-import { listChains, listEndpoints, getEndpointHealth } from "./actions";
 import { GlassHeader } from "@/components/glass-header";
-import { SortableTable } from "@/components/sortable-table";
 import { TiltCard } from "@/components/tilt-card";
 import { StatusPulse } from "@/components/status-pulse";
+import { PageShell, StatCard, Section, GridShell } from "@/components/page-shell";
+import { useState, useEffect } from "react";
 import type { Chain, RpcEndpoint, EndpointHealth } from "@sdp-mvp/types";
 
-export const metadata = {
-  title: "RPC Endpoints",
-  description: "Manage multi-chain RPC endpoints",
-};
+export default function RpcPage() {
+  const [chains, setChains] = useState<Chain[]>([]);
+  const [endpoints, setEndpoints] = useState<RpcEndpoint[]>([]);
+  const [health, setHealth] = useState<EndpointHealth[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default async function RpcPage() {
-  const [chains, endpoints, health] = await Promise.all([
-    listChains(),
-    listEndpoints(),
-    getEndpointHealth(),
-  ]);
+  useEffect(() => {
+    async function fetchData() {
+      const mod = await import("./actions");
+      const [c, e, h] = await Promise.all([
+        mod.listChains(),
+        mod.listEndpoints(),
+        mod.getEndpointHealth(),
+      ]);
+      setChains(c);
+      setEndpoints(e);
+      setHealth(h);
+      setLoading(false);
+    }
+    fetchData();
+  }, []);
 
   const healthMap = new Map(health.map((h) => [h.endpointId, h]));
 
+  if (loading) {
+    return (
+      <PageShell title="RPC Endpoints" description="Loading..." loading>
+        <div />
+      </PageShell>
+    );
+  }
+
   return (
-    <div className="space-y-8 -mt-4">
-      <GlassHeader
-        title="RPC Endpoints"
-        description="Multi-chain RPC infrastructure with automatic failover"
-      >
+    <PageShell
+      title="RPC Endpoints"
+      description="Multi-chain RPC infrastructure with automatic failover"
+      status="online"
+      statusLabel="All systems operational"
+      headerAction={
         <button className="inline-flex items-center gap-1.5 rounded-lg bg-sdp-accent px-4 py-2 text-sm font-medium text-white shadow-lg shadow-sdp-accent/25 transition-all hover:brightness-110">
           <Plus className="h-4 w-4" />
           Add Endpoint
         </button>
-      </GlassHeader>
-
+      }
+    >
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <GridShell cols={4}>
         <StatCard
           label="Active Chains"
           value={chains.filter((c) => c.status === "active").length}
@@ -68,12 +89,11 @@ export default async function RpcPage() {
           icon={<Layers className="h-5 w-5" />}
           accent="violet"
         />
-      </div>
+      </GridShell>
 
       {/* Chain Grid */}
-      <div>
-        <h2 className="text-lg font-semibold text-white mb-4">Supported Chains</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <Section title="Supported Chains">
+        <GridShell cols={3}>
           {chains.map((chain) => {
             const chainEndpoints = endpoints.filter((e) => e.chainId === chain.id);
             const healthyCount = chainEndpoints.filter((e) => e.status === "healthy").length;
@@ -88,33 +108,122 @@ export default async function RpcPage() {
               </TiltCard>
             );
           })}
-        </div>
-      </div>
+        </GridShell>
+      </Section>
 
       {/* Endpoints Table */}
-      <div>
-        <h2 className="text-lg font-semibold text-white mb-4">All Endpoints</h2>
-        <SortableTable
-          data={endpoints}
-          keyExtractor={(e) => e.id}
-          columns={[
-            {
-              key: "name",
-              header: "Endpoint",
-              cell: (e) => (
-                <div>
-                  <p className="font-medium text-white">{e.name}</p>
-                  <p className="text-xs text-white/40">{e.url}</p>
+      <Section title="All Endpoints">
+        <EndpointsTable
+          endpoints={endpoints}
+          chains={chains}
+          healthMap={healthMap}
+        />
+      </Section>
+    </PageShell>
+  );
+}
+
+function EndpointsTable({
+  endpoints,
+  chains,
+  healthMap,
+}: {
+  endpoints: RpcEndpoint[];
+  chains: Chain[];
+  healthMap: Map<string, EndpointHealth>;
+}) {
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+
+  const handleSort = (columnKey: string) => {
+    if (sortColumn === columnKey) {
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortColumn(null);
+        setSortDirection(null);
+      } else {
+        setSortDirection("asc");
+      }
+    } else {
+      setSortColumn(columnKey);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedData = [...endpoints].sort((a, b) => {
+    if (!sortColumn || !sortDirection) return 0;
+
+    const aVal = ((a as unknown) as Record<string, string | number>)[sortColumn];
+    const bVal = ((b as unknown) as Record<string, string | number>)[sortColumn];
+
+    if (typeof aVal === "string" && typeof bVal === "string") {
+      return sortDirection === "asc"
+        ? aVal.localeCompare(bVal)
+        : bVal.localeCompare(aVal);
+    }
+
+    if (typeof aVal === "number" && typeof bVal === "number") {
+      return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
+    }
+
+    return 0;
+  });
+
+  const columns = [
+    { key: "name", header: "Endpoint", sortable: true },
+    { key: "chainId", header: "Chain", sortable: true },
+    { key: "status", header: "Status", sortable: true },
+    { key: "latencyMs", header: "Latency", sortable: true },
+    { key: "type", header: "Type", sortable: true },
+  ];
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm">
+      <table className="w-full text-sm">
+        <thead className="bg-white/[0.03]">
+          <tr>
+            {columns.map((column) => (
+              <th
+                key={column.key}
+                onClick={() => column.sortable && handleSort(column.key)}
+                className={`px-4 py-3 text-left font-medium text-white/40 ${
+                  column.sortable
+                    ? "cursor-pointer select-none hover:text-white/70 transition-colors"
+                    : ""
+                }`}
+              >
+                <div className="flex items-center gap-1">
+                  {column.header}
+                  {column.sortable && (
+                    <span className="text-xs">
+                      {sortColumn === column.key
+                        ? sortDirection === "asc"
+                          ? " ↑"
+                          : " ↓"
+                        : " ↕"}
+                    </span>
+                  )}
                 </div>
-              ),
-              sortable: true,
-            },
-            {
-              key: "chainId",
-              header: "Chain",
-              cell: (e) => {
-                const chain = chains.find((c) => c.id === e.chainId);
-                return (
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-white/[0.06]">
+          {sortedData.map((e) => {
+            const chain = chains.find((c) => c.id === e.chainId);
+            return (
+              <tr
+                key={e.id}
+                className="group hover:bg-white/[0.03] transition-colors"
+              >
+                <td className="px-4 py-3">
+                  <div>
+                    <p className="font-medium text-white">{e.name}</p>
+                    <p className="text-xs text-white/40">{e.url}</p>
+                  </div>
+                </td>
+                <td className="px-4 py-3">
                   <span className="inline-flex items-center gap-1.5">
                     <span
                       className="h-2 w-2 rounded-full"
@@ -122,80 +231,30 @@ export default async function RpcPage() {
                     />
                     <span className="text-white/70">{chain?.name || e.chainId}</span>
                   </span>
-                );
-              },
-              sortable: true,
-            },
-            {
-              key: "status",
-              header: "Status",
-              cell: (e) => (
-                <StatusPulse
-                  status={e.status === "healthy" ? "online" : e.status === "degraded" ? "warning" : "offline"}
-                  label={e.status}
-                />
-              ),
-              sortable: true,
-            },
-            {
-              key: "latencyMs",
-              header: "Latency",
-              cell: (e) => (
-                <span className="text-white/70">{e.latencyMs}ms</span>
-              ),
-              sortable: true,
-            },
-            {
-              key: "type",
-              header: "Type",
-              cell: (e) => (
-                <span className="text-white/70">{e.type}</span>
-              ),
-              sortable: true,
-            },
-          ]}
-        />
-      </div>
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  total,
-  icon,
-  accent,
-}: {
-  label: string;
-  value: number | string;
-  total?: number;
-  icon: React.ReactNode;
-  accent: string;
-}) {
-  const accentColors: Record<string, string> = {
-    indigo: "from-indigo-500/20 to-indigo-500/5 text-indigo-400",
-    emerald: "from-emerald-500/20 to-emerald-500/5 text-emerald-400",
-    amber: "from-amber-500/20 to-amber-500/5 text-amber-400",
-    violet: "from-violet-500/20 to-violet-500/5 text-violet-400",
-  };
-
-  return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5 backdrop-blur-sm card-lift">
-      <div className="flex items-center gap-3">
-        <div className={`flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br ${accentColors[accent]}`}>
-          {icon}
-        </div>
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-white/40">{label}</p>
-          <p className="text-xl font-bold text-white">
-            {value}
-            {total !== undefined && (
-              <span className="text-sm font-normal text-white/30"> / {total}</span>
-            )}
-          </p>
-        </div>
-      </div>
+                </td>
+                <td className="px-4 py-3">
+                  <StatusPulse
+                    status={
+                      e.status === "healthy"
+                        ? "online"
+                        : e.status === "degraded"
+                        ? "warning"
+                        : "offline"
+                    }
+                    label={e.status}
+                  />
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-white/70">{e.latencyMs}ms</span>
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-white/70">{e.type}</span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { PageShell, Section, TableShell } from "@/components/page-shell";
 import { KeyRound, Shield, Clock, AlertCircle } from "lucide-react";
 import { CreateApiKeyModal } from "./create-api-key-modal";
 import { DeactivateKeyModalWrapper } from "./deactivate-key-modal-wrapper";
@@ -22,19 +22,14 @@ export default async function ApiKeysPage() {
   const flash = await getApiKeyFlash();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-sdp-text-high">API Keys</h1>
-          <p className="mt-1 text-sdp-text-medium">
-            Create and manage API keys for your applications.
-          </p>
-        </div>
-        <CreateApiKeyModal wallets={MOCK_WALLETS} />
-      </div>
-
+    <PageShell
+      title="API Keys"
+      description="Create and manage API keys for your applications"
+      status="online"
+      headerAction={<CreateApiKeyModal wallets={MOCK_WALLETS} />}
+    >
       {flash?.level === "error" && (
-        <div className="rounded-lg border border-sdp-error-border bg-sdp-error-bg px-4 py-3 text-sm text-sdp-error-text">
+        <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-400">
           <div className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             {flash.message}
@@ -53,28 +48,28 @@ export default async function ApiKeysPage() {
       {keys.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md overflow-hidden">
+        <TableShell>
           <table className="w-full text-sm">
-            <thead className="bg-sdp-bg text-sdp-text-medium">
+            <thead className="bg-white/[0.03]">
               <tr>
-                <th className="px-4 py-3 text-left font-medium">Name</th>
-                <th className="px-4 py-3 text-left font-medium">Prefix</th>
-                <th className="px-4 py-3 text-left font-medium">Role</th>
-                <th className="px-4 py-3 text-left font-medium">Environment</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
-                <th className="px-4 py-3 text-left font-medium">Last used</th>
-                <th className="px-4 py-3 text-right font-medium">Actions</th>
+                <th className="px-4 py-3 text-left font-medium text-white/40">Name</th>
+                <th className="px-4 py-3 text-left font-medium text-white/40">Prefix</th>
+                <th className="px-4 py-3 text-left font-medium text-white/40">Role</th>
+                <th className="px-4 py-3 text-left font-medium text-white/40">Environment</th>
+                <th className="px-4 py-3 text-left font-medium text-white/40">Status</th>
+                <th className="px-4 py-3 text-left font-medium text-white/40">Last used</th>
+                <th className="px-4 py-3 text-right font-medium text-white/40">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-sdp-border">
+            <tbody className="divide-y divide-white/[0.06]">
               {keys.map((key) => (
                 <ApiKeyRow key={key.id} apiKey={key} />
               ))}
             </tbody>
           </table>
-        </div>
+        </TableShell>
       )}
-    </div>
+    </PageShell>
   );
 }
 
@@ -82,28 +77,28 @@ function ApiKeyRow({ apiKey }: { apiKey: ApiKeyListItem }) {
   const isActive = apiKey.status === "active";
 
   return (
-    <tr className="hover:bg-sdp-bg/50 transition-colors">
-      <td className="px-4 py-3 font-medium text-sdp-text-high">{apiKey.name}</td>
-      <td className="px-4 py-3 font-mono text-sdp-text-medium">{apiKey.keyPrefix}</td>
+    <tr className="hover:bg-white/[0.03] transition-colors">
+      <td className="px-4 py-3 font-medium text-white">{apiKey.name}</td>
+      <td className="px-4 py-3 font-mono text-white/70">{apiKey.keyPrefix}</td>
       <td className="px-4 py-3">
-        <span className="inline-flex items-center gap-1 rounded-full bg-sdp-bg px-2 py-0.5 text-xs font-medium text-sdp-text-medium">
+        <span className="inline-flex items-center gap-1 rounded-full border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 text-xs font-medium text-white/70">
           <Shield className="h-3 w-3" />
           {apiKey.role}
         </span>
       </td>
-      <td className="px-4 py-3 text-sdp-text-medium capitalize">{apiKey.environment}</td>
+      <td className="px-4 py-3 text-white/70 capitalize">{apiKey.environment}</td>
       <td className="px-4 py-3">
         <span
           className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
             isActive
-              ? "bg-sdp-success-bg text-sdp-success-text"
-              : "bg-sdp-error-bg text-sdp-error-text"
+              ? "bg-emerald-500/20 text-emerald-400"
+              : "bg-rose-500/20 text-rose-400"
           }`}
         >
           {isActive ? "Active" : "Deactivated"}
         </span>
       </td>
-      <td className="px-4 py-3 text-sdp-text-medium">
+      <td className="px-4 py-3 text-white/70">
         {apiKey.lastUsedAt ? (
           <span className="inline-flex items-center gap-1">
             <Clock className="h-3 w-3" />
@@ -124,12 +119,12 @@ function ApiKeyRow({ apiKey }: { apiKey: ApiKeyListItem }) {
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md py-16 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sdp-bg">
-        <KeyRound className="h-6 w-6 text-sdp-text-medium" />
+    <div className="flex flex-col items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] py-16 text-center card-lift">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.06]">
+        <KeyRound className="h-6 w-6 text-white/50" />
       </div>
-      <h3 className="mt-4 text-lg font-medium text-sdp-text-high">No API keys yet</h3>
-      <p className="mt-1 max-w-sm text-sm text-sdp-text-medium">
+      <h3 className="mt-4 text-lg font-medium text-white">No API keys yet</h3>
+      <p className="mt-1 max-w-sm text-sm text-white/50">
         Create your first API key to start integrating with the platform.
       </p>
     </div>
