@@ -1,12 +1,15 @@
+"use client";
+
 import {
   Activity,
   ArrowDownRight,
   ArrowUpRight,
   Clock,
   DollarSign,
-  Globe,
   Zap,
+  Server,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 import {
   getUsageSummary,
   getChainUsage,
@@ -15,27 +18,94 @@ import {
   getLatencyTimeSeries,
   getApiKeyUsage,
   getRegionUsage,
+  getSparklineData,
 } from "./actions";
-import { PageShell, StatCard, Section, TableShell, GridShell } from "@/components/page-shell";
+import { PageShell } from "@/components/page-shell";
 import { StatusPulse } from "@/components/status-pulse";
+import { AnalyticsStatCard } from "@/components/analytics-stat-card";
+import { TimeRangeToggle } from "@/components/time-range-toggle";
+import { EnhancedBarChart } from "@/components/enhanced-bar-chart";
+import { EnhancedLineChart } from "@/components/enhanced-line-chart";
+import { HealthRing, HealthBadge } from "@/components/health-ring";
+import { RegionCard } from "@/components/region-card";
+import { AnimatedCounter } from "@/components/animated-counter";
+import type { TimeRange } from "./actions";
 import type { ChainUsage, MethodUsage, ApiKeyUsage, RegionUsage } from "@sdp-mvp/types";
 
-export const metadata = {
-  title: "Analytics",
-  description: "Real-time usage analytics and monitoring",
-};
+export default function AnalyticsPage() {
+  const [timeRange, setTimeRange] = useState<TimeRange>("24h");
+  const [mounted, setMounted] = useState(false);
 
-export default async function AnalyticsPage() {
-  const [summary, chainUsage, methodUsage, requestSeries, latencySeries, keyUsage, regionUsage] =
-    await Promise.all([
+  // Data states
+  const [summary, setSummary] = useState<Awaited<ReturnType<typeof getUsageSummary>> | null>(null);
+  const [chainUsage, setChainUsage] = useState<ChainUsage[]>([]);
+  const [methodUsage, setMethodUsage] = useState<MethodUsage[]>([]);
+  const [requestSeries, setRequestSeries] = useState<Awaited<ReturnType<typeof getRequestTimeSeries>> | null>(null);
+  const [latencySeries, setLatencySeries] = useState<Awaited<ReturnType<typeof getLatencyTimeSeries>> | null>(null);
+  const [keyUsage, setKeyUsage] = useState<ApiKeyUsage[]>([]);
+  const [regionUsage, setRegionUsage] = useState<RegionUsage[]>([]);
+  const [sparklines, setSparklines] = useState<Record<string, { label: string; value: number }[]>>({});
+
+  useEffect(() => {
+    setMounted(true);
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    loadChartData();
+  }, [timeRange]);
+
+  async function loadData() {
+    const [s, c, m, k, r] = await Promise.all([
       getUsageSummary(),
       getChainUsage(),
       getMethodUsage(),
-      getRequestTimeSeries(),
-      getLatencyTimeSeries(),
       getApiKeyUsage(),
       getRegionUsage(),
     ]);
+    setSummary(s);
+    setChainUsage(c);
+    setMethodUsage(m);
+    setKeyUsage(k);
+    setRegionUsage(r);
+
+    // Load sparklines
+    const [reqSpark, latSpark, errSpark, costSpark] = await Promise.all([
+      getSparklineData("requests"),
+      getSparklineData("latency"),
+      getSparklineData("errors"),
+      getSparklineData("cost"),
+    ]);
+    setSparklines({
+      requests: reqSpark,
+      latency: latSpark,
+      errors: errSpark,
+      cost: costSpark,
+    });
+
+    await loadChartData();
+  }
+
+  async function loadChartData() {
+    const [req, lat] = await Promise.all([
+      getRequestTimeSeries(timeRange),
+      getLatencyTimeSeries(timeRange),
+    ]);
+    setRequestSeries(req);
+    setLatencySeries(lat);
+  }
+
+  if (!summary || !requestSeries || !latencySeries) {
+    return (
+      <PageShell title="Analytics" description="Real-time usage metrics and performance monitoring">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-32 animate-pulse rounded-xl bg-white/[0.03]" />
+          ))}
+        </div>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell
@@ -44,51 +114,93 @@ export default async function AnalyticsPage() {
       status="online"
       statusLabel="Live"
     >
-      {/* Stats */}
-      <GridShell cols={4}>
-        <StatCard
+      {/* Stats Row */}
+      <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-4 transition-all duration-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <AnalyticsStatCard
           label="Total Requests"
-          value={summary.totalRequests.toLocaleString()}
+          value={summary.totalRequests}
           icon={<Activity className="h-5 w-5" />}
           accent="blue"
+          change={summary.totalRequestsChange}
+          sparklineData={sparklines.requests}
         />
-        <StatCard
+        <AnalyticsStatCard
           label="Avg Latency"
-          value={`${summary.avgLatencyMs}ms`}
+          value={summary.avgLatencyMs}
+          suffix="ms"
           icon={<Clock className="h-5 w-5" />}
           accent="emerald"
+          change={summary.avgLatencyChange}
+          inverseChange
+          sparklineData={sparklines.latency}
         />
-        <StatCard
+        <AnalyticsStatCard
           label="Error Rate"
-          value={`${summary.errorRate}%`}
+          value={summary.errorRate}
+          suffix="%"
+          decimals={2}
           icon={<Zap className="h-5 w-5" />}
           accent="amber"
+          change={summary.errorRateChange}
+          inverseChange
+          sparklineData={sparklines.errors}
         />
-        <StatCard
+        <AnalyticsStatCard
           label="Est. Cost"
-          value={`$${summary.estimatedCost.toFixed(2)}`}
+          value={summary.estimatedCost}
+          prefix="$"
+          decimals={2}
           icon={<DollarSign className="h-5 w-5" />}
           accent="purple"
+          change={summary.estimatedCostChange}
+          sparklineData={sparklines.cost}
         />
-      </GridShell>
+      </div>
 
-      {/* Charts */}
-      <GridShell cols={2}>
-        <ChartCard title="Requests by Hour" subtitle="Last 24 hours">
-          <BarChart data={requestSeries} />
-        </ChartCard>
-        <ChartCard title="Latency Percentiles" subtitle="Last 24 hours">
-          <LineChart data={latencySeries} />
-        </ChartCard>
-      </GridShell>
+      {/* Charts with Time Range */}
+      <div className={`transition-all duration-500 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-white">Performance Trends</h2>
+          <TimeRangeToggle value={timeRange} onChange={setTimeRange} />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-5 card-lift">
+            <div className="mb-4">
+              <h3 className="font-medium text-white">Requests by Hour</h3>
+              <p className="text-xs text-white/40">
+                {timeRange === "24h" ? "Last 24 hours" : timeRange === "7d" ? "Last 7 days" : "Last 30 days"}
+              </p>
+            </div>
+            <EnhancedBarChart data={requestSeries} />
+          </div>
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-5 card-lift">
+            <div className="mb-4">
+              <h3 className="font-medium text-white">Latency Percentiles</h3>
+              <p className="text-xs text-white/40">
+                {timeRange === "24h" ? "Last 24 hours" : timeRange === "7d" ? "Last 7 days" : "Last 30 days"}
+              </p>
+            </div>
+            <EnhancedLineChart data={latencySeries} />
+          </div>
+        </div>
+      </div>
 
-      {/* Chain Usage */}
-      <Section title="Chain Usage">
-        <TableShell>
+      {/* Chain Usage with Health */}
+      <div className={`space-y-4 transition-all duration-500 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">Chain Health</h2>
+          <div className="flex items-center gap-2 text-xs text-white/40">
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-400" /> Healthy</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-400" /> Degraded</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-rose-400" /> Critical</span>
+          </div>
+        </div>
+        <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm">
           <table className="w-full text-sm">
             <thead className="bg-white/[0.03]">
               <tr>
                 <th className="px-4 py-3 text-left font-medium text-white/40">Chain</th>
+                <th className="px-4 py-3 text-center font-medium text-white/40">Health</th>
                 <th className="px-4 py-3 text-right font-medium text-white/40">Requests</th>
                 <th className="px-4 py-3 text-right font-medium text-white/40">Latency</th>
                 <th className="px-4 py-3 text-right font-medium text-white/40">Error Rate</th>
@@ -102,13 +214,14 @@ export default async function AnalyticsPage() {
               ))}
             </tbody>
           </table>
-        </TableShell>
-      </Section>
+        </div>
+      </div>
 
-      {/* Two Column */}
-      <GridShell cols={2}>
-        <Section title="Top Methods">
-          <TableShell>
+      {/* Two Column: Methods + API Keys */}
+      <div className={`grid gap-4 sm:grid-cols-2 transition-all duration-500 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-white">Top Methods</h2>
+          <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm">
             <table className="w-full text-sm">
               <thead className="bg-white/[0.03]">
                 <tr>
@@ -124,11 +237,12 @@ export default async function AnalyticsPage() {
                 ))}
               </tbody>
             </table>
-          </TableShell>
-        </Section>
+          </div>
+        </div>
 
-        <Section title="API Key Usage">
-          <TableShell>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-white">API Key Usage</h2>
+          <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm">
             <table className="w-full text-sm">
               <thead className="bg-white/[0.03]">
                 <tr>
@@ -143,146 +257,61 @@ export default async function AnalyticsPage() {
                 ))}
               </tbody>
             </table>
-          </TableShell>
-        </Section>
-      </GridShell>
+          </div>
+        </div>
+      </div>
 
-      {/* Region Usage */}
-      <Section title="Regional Performance">
-        <GridShell cols={5}>
-          {regionUsage.map((region) => (
-            <RegionCard key={region.region} region={region} />
+      {/* Regional Performance */}
+      <div className={`space-y-4 transition-all duration-500 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <h2 className="text-lg font-semibold text-white">Regional Performance</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {regionUsage.map((region, i) => (
+            <RegionCard key={region.region} region={region} index={i} />
           ))}
-        </GridShell>
-      </Section>
+        </div>
+      </div>
     </PageShell>
   );
 }
 
-function ChartCard({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-5 card-lift">
-      <div className="mb-4">
-        <h3 className="font-medium text-white">{title}</h3>
-        <p className="text-xs text-white/40">{subtitle}</p>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function BarChart({ data }: { data: { labels: string[]; datasets: { label: string; data: number[]; color?: string }[] } }) {
-  const maxValue = Math.max(...data.datasets.flatMap((d) => d.data));
-
-  return (
-    <div className="space-y-2">
-      {data.labels.slice(-12).map((label, i) => {
-        const idx = data.labels.length - 12 + i;
-        const total = data.datasets.reduce((sum, d) => sum + d.data[idx], 0);
-        return (
-          <div key={label} className="flex items-center gap-2">
-            <span className="w-8 text-xs text-white/40">{label}</span>
-            <div className="flex-1 h-6 bg-white/[0.03] rounded overflow-hidden flex">
-              {data.datasets.map((dataset, di) => {
-                const value = dataset.data[idx];
-                const width = maxValue > 0 ? (value / maxValue) * 100 : 0;
-                return (
-                  <div
-                    key={di}
-                    className="h-full transition-all"
-                    style={{
-                      width: `${width}%`,
-                      backgroundColor: dataset.color || "#6366f1",
-                      opacity: 0.7 + di * 0.1,
-                    }}
-                    title={`${dataset.label}: ${value.toLocaleString()}`}
-                  />
-                );
-              })}
-            </div>
-            <span className="w-16 text-xs text-white/50 text-right">
-              {(total / 1000).toFixed(0)}k
-            </span>
-          </div>
-        );
-      })}
-      <div className="flex gap-3 pt-2">
-        {data.datasets.map((d) => (
-          <div key={d.label} className="flex items-center gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: d.color }} />
-            <span className="text-xs text-white/50">{d.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function LineChart({ data }: { data: { labels: string[]; datasets: { label: string; data: number[]; color?: string }[] } }) {
-  const maxValue = Math.max(...data.datasets.flatMap((d) => d.data));
-  const minValue = Math.min(...data.datasets.flatMap((d) => d.data));
-  const range = maxValue - minValue || 1;
-
-  return (
-    <div className="space-y-3">
-      <svg viewBox="0 0 300 120" className="w-full h-32">
-        {data.datasets.map((dataset, di) => {
-          const points = dataset.data.map((value, i) => {
-            const x = (i / (dataset.data.length - 1)) * 280 + 10;
-            const y = 110 - ((value - minValue) / range) * 100;
-            return `${x},${y}`;
-          });
-
-          return (
-            <g key={di}>
-              <polyline
-                fill="none"
-                stroke={dataset.color || "#6366f1"}
-                strokeWidth="2"
-                points={points.join(" ")}
-                opacity={0.8}
-              />
-            </g>
-          );
-        })}
-      </svg>
-      <div className="flex justify-between text-xs text-white/40">
-        <span>{data.labels[0]}</span>
-        <span>{data.labels[data.labels.length - 1]}</span>
-      </div>
-      <div className="flex gap-3">
-        {data.datasets.map((d) => (
-          <div key={d.label} className="flex items-center gap-1.5">
-            <div className="h-0.5 w-4" style={{ backgroundColor: d.color }} />
-            <span className="text-xs text-white/50">{d.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function ChainUsageRow({ chain }: { chain: ChainUsage }) {
+  const healthScore = Math.max(0, 100 - chain.latencyMs / 3 - chain.errorRate * 100 - chain.cost / 20);
+
   return (
     <tr className="hover:bg-white/[0.03] transition-colors">
-      <td className="px-4 py-3 font-medium text-white">{chain.chainName}</td>
-      <td className="px-4 py-3 text-right text-white/70">{chain.requests.toLocaleString()}</td>
-      <td className="px-4 py-3 text-right text-white/70">{chain.latencyMs}ms</td>
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-lg bg-white/[0.06] flex items-center justify-center text-xs font-bold text-white/60">
+            {chain.chainName.slice(0, 2).toUpperCase()}
+          </div>
+          <span className="font-medium text-white">{chain.chainName}</span>
+        </div>
+      </td>
+      <td className="px-4 py-3 text-center">
+        <div className="flex items-center justify-center gap-2">
+          <HealthRing score={healthScore} size={36} strokeWidth={3} />
+          <HealthBadge score={healthScore} />
+        </div>
+      </td>
+      <td className="px-4 py-3 text-right text-white/70 tabular-nums">
+        <AnimatedCounter value={chain.requests} duration={1000} />
+      </td>
+      <td className="px-4 py-3 text-right text-white/70 tabular-nums">{chain.latencyMs}ms</td>
       <td className="px-4 py-3 text-right">
         <span className={`text-xs ${chain.errorRate > 0.1 ? "text-rose-400" : "text-white/70"}`}>
           {chain.errorRate}%
         </span>
       </td>
-      <td className="px-4 py-3 text-right text-white/70">${chain.cost.toFixed(2)}</td>
+      <td className="px-4 py-3 text-right text-white/70 tabular-nums">${chain.cost.toFixed(2)}</td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
             <div
-              className="h-full bg-sdp-accent rounded-full"
+              className="h-full bg-sdp-accent rounded-full transition-all duration-1000"
               style={{ width: `${chain.percentageOfTotal}%` }}
             />
           </div>
-          <span className="text-xs text-white/40 w-10">{chain.percentageOfTotal}%</span>
+          <span className="text-xs text-white/40 w-10 tabular-nums">{chain.percentageOfTotal}%</span>
         </div>
       </td>
     </tr>
@@ -293,8 +322,10 @@ function MethodRow({ method }: { method: MethodUsage }) {
   return (
     <tr className="hover:bg-white/[0.03] transition-colors">
       <td className="px-4 py-3 font-mono text-xs text-white">{method.method}</td>
-      <td className="px-4 py-3 text-right text-white/70">{method.count.toLocaleString()}</td>
-      <td className="px-4 py-3 text-right text-white/70">{method.avgLatencyMs}ms</td>
+      <td className="px-4 py-3 text-right text-white/70 tabular-nums">
+        <AnimatedCounter value={method.count} duration={1000} />
+      </td>
+      <td className="px-4 py-3 text-right text-white/70 tabular-nums">{method.avgLatencyMs}ms</td>
       <td className="px-4 py-3 text-right">
         <span className={`text-xs ${method.errorRate > 0.05 ? "text-rose-400" : "text-white/70"}`}>
           {method.errorRate}%
@@ -315,34 +346,11 @@ function ApiKeyRow({ apiKey }: { apiKey: ApiKeyUsage }) {
         <div className="font-medium text-white">{apiKey.keyName}</div>
         <div className="text-xs text-white/40">{apiKey.keyPrefix}</div>
       </td>
-      <td className="px-4 py-3 text-right text-white/70">{apiKey.requests.toLocaleString()}</td>
+      <td className="px-4 py-3 text-right text-white/70 tabular-nums">
+        <AnimatedCounter value={apiKey.requests} duration={1000} />
+      </td>
       <td className="px-4 py-3 text-right text-white/70">{timeAgo}</td>
     </tr>
-  );
-}
-
-function RegionCard({ region }: { region: RegionUsage }) {
-  return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 backdrop-blur-sm card-lift">
-      <div className="flex items-center gap-2 mb-2">
-        <Globe className="h-4 w-4 text-white/40" />
-        <span className="text-sm font-medium text-white">{region.region}</span>
-      </div>
-      <div className="space-y-1 text-sm">
-        <div className="flex justify-between">
-          <span className="text-white/40">Requests</span>
-          <span className="text-white">{(region.requests / 1000).toFixed(0)}k</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-white/40">Latency</span>
-          <span className="text-white">{region.latencyMs}ms</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-white/40">Uptime</span>
-          <span className="text-emerald-400">{region.uptime}%</span>
-        </div>
-      </div>
-    </div>
   );
 }
 

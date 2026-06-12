@@ -19,6 +19,8 @@ import { MiniChart } from "@/components/mini-chart";
 import { StatusPulse } from "@/components/status-pulse";
 import { GlassHeader } from "@/components/glass-header";
 import { WebSocketFeed } from "@/components/websocket-feed";
+import { QuotaUsageWidget } from "@/components/quota-usage-widget";
+import { RpcMethodsPanel } from "@/components/rpc-methods-panel";
 import { getDashboardStats } from "./actions";
 
 export const metadata = {
@@ -70,6 +72,26 @@ export default async function DashboardPage() {
           prefix="$"
           decimals={2}
         />
+      </div>
+
+      {/* Quota + RPC Methods Row */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <QuotaUsageWidget
+            used={stats.quota.used}
+            limit={stats.quota.limit}
+            unit={stats.quota.unit}
+            tier={stats.quota.tier}
+            billingCycle={stats.quota.billingCycle}
+            burnRate={stats.quota.burnRate}
+          />
+        </div>
+        <div className="lg:col-span-2">
+          <RpcMethodsPanel
+            data={stats.rpcMethods}
+            totalRequests={stats.totalRequests}
+          />
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

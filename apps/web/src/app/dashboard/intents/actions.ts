@@ -90,6 +90,56 @@ const MOCK_INTENTS: IntentRequest[] = [
     },
     createdAt: "2026-06-11T08:20:00Z",
   },
+    {
+    id: "int_6",
+    naturalLanguage: "Deploy a new ERC-20 token named 'SkyToken' with symbol SKY and 1B supply on Base",
+    parsedIntent: {
+      action: "deploy",
+      chain: "base_mainnet",
+      contract: "ERC20",
+      token: "SkyToken",
+      amount: "1000000000",
+    },
+    status: "simulated",
+    simulationResult: {
+      success: true,
+      gasEstimate: 2850000,
+      expectedOutput: "Contract address: 0xSky...Token",
+      warnings: ["High gas cost for initial deployment", "Verify contract on Etherscan after deployment"],
+    },
+    createdAt: "2026-06-12T11:00:00Z",
+  },
+  {
+    id: "int_7",
+    naturalLanguage: "Create a liquidity pool for SKY/USDC on Uniswap V3 with 0.3% fee tier",
+    parsedIntent: {
+      action: "pool",
+      chain: "base_mainnet",
+      token: "SKY/USDC",
+      recipient: "Uniswap V3",
+    },
+    status: "parsed",
+    createdAt: "2026-06-12T11:05:00Z",
+  },
+  {
+    id: "int_8",
+    naturalLanguage: "Schedule a recurring payment of 100 USDC to payroll.eth every 1st of the month",
+    parsedIntent: {
+      action: "schedule",
+      chain: "ethereum",
+      token: "USDC",
+      amount: "100",
+      recipient: "payroll.eth",
+    },
+    status: "approved",
+    simulationResult: {
+      success: true,
+      gasEstimate: 95000,
+      expectedOutput: "Recurring payment active",
+      warnings: ["Ensure sufficient USDC balance", "Gas fees will vary"],
+    },
+    createdAt: "2026-06-12T11:10:00Z",
+  },
 ];
 
 export async function listIntents(): Promise<IntentRequest[]> {

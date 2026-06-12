@@ -48,5 +48,27 @@ export async function getDashboardStats() {
       { id: "4", action: "Team member invited", project: "Sandbox", time: "1 hour ago", type: "warning" },
       { id: "5", action: "Rollup deployment started", project: "GameFi L3", time: "2 hours ago", type: "info" },
     ],
+    // Quota data
+    quota: {
+      used: 2_847_293,
+      limit: 3_000_000,
+      unit: "req",
+      tier: "pro" as const,
+      billingCycle: "Jun 1 - Jun 30, 2026",
+      burnRate: 4200,
+    },
+    // RPC methods breakdown
+    rpcMethods: [
+      { id: "1", method: "getAccountInfo", requests: 892_341, percentOfTotal: 31.3, errorRate: 0.04, avgLatency: 42, category: "account" as const },
+      { id: "2", method: "getBlock", requests: 534_120, percentOfTotal: 18.8, errorRate: 0.12, avgLatency: 78, category: "read" as const },
+      { id: "3", method: "sendTransaction", requests: 421_890, percentOfTotal: 14.8, errorRate: 2.34, avgLatency: 156, category: "transaction" as const },
+      { id: "4", method: "getTokenAccountsByOwner", requests: 312_450, percentOfTotal: 11.0, errorRate: 0.08, avgLatency: 65, category: "account" as const },
+      { id: "5", method: "getLatestBlockhash", requests: 267_340, percentOfTotal: 9.4, errorRate: 0.02, avgLatency: 38, category: "read" as const },
+      { id: "6", method: "simulateTransaction", requests: 198_220, percentOfTotal: 7.0, errorRate: 5.67, avgLatency: 203, category: "transaction" as const },
+      { id: "7", method: "getBalance", requests: 142_100, percentOfTotal: 5.0, errorRate: 0.01, avgLatency: 35, category: "account" as const },
+      { id: "8", method: "getProgramAccounts", requests: 78_832, percentOfTotal: 2.8, errorRate: 8.91, avgLatency: 412, category: "read" as const },
+      { id: "9", method: "getSignatureStatuses", requests: 45_200, percentOfTotal: 1.6, errorRate: 0.15, avgLatency: 52, category: "transaction" as const },
+      { id: "10", method: "requestAirdrop", requests: 12_800, percentOfTotal: 0.5, errorRate: 12.40, avgLatency: 890, category: "write" as const },
+    ],
   };
 }
