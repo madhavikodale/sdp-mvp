@@ -846,3 +846,45 @@ export interface RollupConfig {
 
 export type { Partner, PartnerTier, PartnerStatus, Tenant, TenantStatus, RevenueShare, PayoutStatus, PartnerAnalytics, WhiteLabelConfig, TenantRevenue } from "./partners";
 export { PARTNER_TIERS } from "./partners";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MEV Protection
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type { MevThreat, MevProtectionStatus, MevShieldConfig, MevThreatType, MevSeverity, MevThreatStatus, MevShieldMode } from "./mev";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Alerts & Monitoring
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type { AlertRule, AlertNotification, AlertChannelConfig, AlertSeverity, AlertStatus, AlertCondition, AlertMetric, AlertChannel } from "./alerts";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// API Documentation
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type { ApiEndpointDoc, ApiParameter, ApiRequestBody, ApiResponse, CodeExample, ApiDocCategory, CodeLanguage } from "./docs";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Chain Acceleration
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type { ChainAccelerationConfig, AcceleratedTransaction, RelayNode, AccelerationStrategy, AccelerationStatus } from "./acceleration";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Authentication
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type {
+  AuthMethod,
+  AuthStatus,
+  OnboardingStatus,
+  AuthUser,
+  AuthSession,
+  LoginCredentials,
+  RegisterInput,
+  AuthResult,
+  OAuthProvider,
+  WalletAuthOptions,
+  WalletSignature,
+} from "./auth";

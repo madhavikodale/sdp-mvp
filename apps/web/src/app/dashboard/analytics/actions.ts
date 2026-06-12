@@ -2,6 +2,8 @@
 
 import type { UsageSummary, ChainUsage, MethodUsage, TimeSeriesData, ApiKeyUsage, RegionUsage } from "@sdp-mvp/types";
 
+export type TimeRange = "24h" | "7d" | "30d";
+
 export async function getUsageSummary(): Promise<UsageSummary> {
   await new Promise((resolve) => setTimeout(resolve, 150));
   return {
@@ -16,6 +18,21 @@ export async function getUsageSummary(): Promise<UsageSummary> {
     activeEndpoints: 8,
     activeEndpointsChange: 2,
   };
+}
+
+export async function getSparklineData(metric: "requests" | "latency" | "errors" | "cost"): Promise<{ label: string; value: number }[]> {
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  const baseValues: Record<string, number> = {
+    requests: 40000,
+    latency: 50,
+    errors: 0.1,
+    cost: 50,
+  };
+  const base = baseValues[metric];
+  return Array.from({ length: 14 }, (_, i) => ({
+    label: `D${i + 1}`,
+    value: Math.floor(base + (Math.random() - 0.5) * base * 0.6),
+  }));
 }
 
 export async function getChainUsage(): Promise<ChainUsage[]> {
@@ -46,9 +63,12 @@ export async function getMethodUsage(): Promise<MethodUsage[]> {
   ];
 }
 
-export async function getRequestTimeSeries(): Promise<TimeSeriesData> {
+export async function getRequestTimeSeries(range: TimeRange = "24h"): Promise<TimeSeriesData> {
   await new Promise((resolve) => setTimeout(resolve, 200));
-  const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+  const points = range === "24h" ? 24 : range === "7d" ? 7 : 30;
+  const labels = Array.from({ length: points }, (_, i) =>
+    range === "24h" ? `${i}:00` : range === "7d" ? `Day ${i + 1}` : `${i + 1}`
+  );
   return {
     labels,
     datasets: [
@@ -60,9 +80,12 @@ export async function getRequestTimeSeries(): Promise<TimeSeriesData> {
   };
 }
 
-export async function getLatencyTimeSeries(): Promise<TimeSeriesData> {
+export async function getLatencyTimeSeries(range: TimeRange = "24h"): Promise<TimeSeriesData> {
   await new Promise((resolve) => setTimeout(resolve, 200));
-  const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+  const points = range === "24h" ? 24 : range === "7d" ? 7 : 30;
+  const labels = Array.from({ length: points }, (_, i) =>
+    range === "24h" ? `${i}:00` : range === "7d" ? `Day ${i + 1}` : `${i + 1}`
+  );
   return {
     labels,
     datasets: [
